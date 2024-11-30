@@ -28,16 +28,19 @@ namespace HeadVoiceSelector.Core.UI
             EquipmentSlot.Headwear
         ];
 
-        private static readonly CompositeDisposableClass compositeDisposableClass = new CompositeDisposableClass();
+        private static readonly CompositeDisposableClass compositeDisposableClass = new();
         private static MongoID[] _availableCustomizations;
-        private static readonly Dictionary<int, TagBank> _voices = new Dictionary<int, TagBank>();
+        private static readonly Dictionary<int, TagBank> _voices = [];
         private static int _selectedHeadIndex;
         private static int _selectedVoiceIndex;
         private static GClass786<EquipmentSlot, PlayerBody.GClass2076> slotViews;
-        private static List<KeyValuePair<string, GClass3317>> _headTemplates;
+
+        private static readonly Dictionary<MongoID, GClass3317> HeadTemplates = [];
+        
         private static List<KeyValuePair<string, GClass3321>> _voiceTemplates;
         private static GameObject _overallScreen;
 
+        private static GClass1930 Customization => PatchConstants.BackEndSession.Profile.Customization;
         
         public static async Task AddCustomizationDrawers(OverallScreen overallScreen)
         {
@@ -51,10 +54,10 @@ namespace HeadVoiceSelector.Core.UI
                     return;
                 }
 
-                GameObject overallScreenGameObject = overallScreen.gameObject;
+                var overallScreenGameObject = overallScreen.gameObject;
                 _overallScreen = overallScreenGameObject;
-                Transform leftSide = overallScreenGameObject.transform.Find("LeftSide");
-                Transform clothingPanel = leftSide.transform.Find("ClothingPanel");
+                var leftSide = overallScreenGameObject.transform.Find("LeftSide");
+                var clothingPanel = leftSide.transform.Find("ClothingPanel");
 
                 if (clothingPanel == null || leftSide == null)
                 {
@@ -62,10 +65,10 @@ namespace HeadVoiceSelector.Core.UI
                     return;
                 }
 
-                GameObject clonedCustomizationDrawers = Object.Instantiate(clothingPanel.gameObject, leftSide);
+                var clonedCustomizationDrawers = Object.Instantiate(clothingPanel.gameObject, leftSide);
                 clonedCustomizationDrawers.gameObject.name = "NewHeadVoiceCustomizationDrawers";
 
-                Vector3 newPosition = clonedCustomizationDrawers.transform.localPosition;
+                var newPosition = clonedCustomizationDrawers.transform.localPosition;
                 newPosition.y -= 50f;
                 clonedCustomizationDrawers.transform.localPosition = newPosition;
 
@@ -77,8 +80,8 @@ namespace HeadVoiceSelector.Core.UI
                     return;
                 }
 
-                Transform headTransform = clonedCustomizationDrawers.transform.Find("Upper");
-                Transform voiceTransform = clonedCustomizationDrawers.transform.Find("Lower");
+                var headTransform = clonedCustomizationDrawers.transform.Find("Upper");
+                var voiceTransform = clonedCustomizationDrawers.transform.Find("Lower");
 
                 if (headTransform == null || voiceTransform == null)
                 {
@@ -89,35 +92,35 @@ namespace HeadVoiceSelector.Core.UI
                 headTransform.gameObject.name = "Head";
                 voiceTransform.gameObject.name = "Voice";
 
-                Transform headIconTransform = clonedCustomizationDrawers.transform.Find("Head/Icon");
-                Transform voiceIconTransform = clonedCustomizationDrawers.transform.Find("Voice/Icon");
+                var headIconTransform = clonedCustomizationDrawers.transform.Find("Head/Icon");
+                var voiceIconTransform = clonedCustomizationDrawers.transform.Find("Voice/Icon");
 
                 if (headIconTransform != null && voiceIconTransform != null)
                 {
-                    Image headIcon = headIconTransform.GetComponent<Image>();
-                    Image voiceIcon = voiceIconTransform.GetComponent<Image>();
+                    var headIcon = headIconTransform.GetComponent<Image>();
+                    var voiceIcon = voiceIconTransform.GetComponent<Image>();
 
                     var headIconPng = Path.Combine(HeadVoiceSelector.pluginPath, "WTT-HeadVoiceSelector", "Icons", "icon_face_selector.png");
                     var voiceIconPng = Path.Combine(HeadVoiceSelector.pluginPath, "WTT-HeadVoiceSelector", "Icons", "icon_voice_selector.png");
 
-                    byte[] headIconByte = File.ReadAllBytes(headIconPng);
-                    byte[] voiceIconByte = File.ReadAllBytes(voiceIconPng);
+                    var headIconByte = File.ReadAllBytes(headIconPng);
+                    var voiceIconByte = File.ReadAllBytes(voiceIconPng);
 
-                    Texture2D headIconTexture = new Texture2D(2, 2);
-                    Texture2D voiceIconTexture = new Texture2D(2, 2);
+                    var headIconTexture = new Texture2D(2, 2);
+                    var voiceIconTexture = new Texture2D(2, 2);
 
                     headIconTexture.LoadImage(headIconByte);
                     voiceIconTexture.LoadImage(voiceIconByte);
 
-                    Sprite headIconSprite = Sprite.Create(headIconTexture, new Rect(0, 0, headIconTexture.width, headIconTexture.height), Vector2.zero);
-                    Sprite voiceIconSprite = Sprite.Create(voiceIconTexture, new Rect(0, 0, voiceIconTexture.width, voiceIconTexture.height), Vector2.zero);
+                    var headIconSprite = Sprite.Create(headIconTexture, new Rect(0, 0, headIconTexture.width, headIconTexture.height), Vector2.zero);
+                    var voiceIconSprite = Sprite.Create(voiceIconTexture, new Rect(0, 0, voiceIconTexture.width, voiceIconTexture.height), Vector2.zero);
 
                     headIcon.sprite = headIconSprite;
                     voiceIcon.sprite = voiceIconSprite;
                 }
 
-                Transform headSelectorTransform = clonedCustomizationDrawers.transform.Find("Head/ClothingSelector");
-                Transform voiceSelectorTransform = clonedCustomizationDrawers.transform.Find("Voice/ClothingSelector");
+                var headSelectorTransform = clonedCustomizationDrawers.transform.Find("Head/ClothingSelector");
+                var voiceSelectorTransform = clonedCustomizationDrawers.transform.Find("Voice/ClothingSelector");
 
                 if (headSelectorTransform == null || voiceSelectorTransform == null)
                 {
@@ -128,18 +131,18 @@ namespace HeadVoiceSelector.Core.UI
                 headSelectorTransform.gameObject.name = "HeadSelector";
                 voiceSelectorTransform.gameObject.name = "VoiceSelector";
 
-                DropDownBox headDropDownBox = headSelectorTransform.GetComponent<DropDownBox>();
-                DropDownBox voiceDropDownBox = voiceSelectorTransform.GetComponent<DropDownBox>();
+                var headDropDownBox = headSelectorTransform.GetComponent<DropDownBox>();
+                var voiceDropDownBox = voiceSelectorTransform.GetComponent<DropDownBox>();
 
-                if (headDropDownBox == null || voiceDropDownBox == null)
+                if (headDropDownBox is null || voiceDropDownBox is null)
                 {
                     Console.WriteLine("headDropdownBox or voiceDropdownBox is null");
                     return;
                 }
 
-                await getAvailableCustomizations(Singleton<ClientApplication<ISession>>.Instance.GetClientBackEndSession());
+                await GetAvailableCustomizations(Singleton<ClientApplication<ISession>>.Instance.GetClientBackEndSession());
                 InitCustomizationDropdowns(_availableCustomizations, headDropDownBox, voiceDropDownBox);
-                setupCustomizationDrawers(headDropDownBox, voiceDropDownBox);
+                SetupCustomizationDrawers(headDropDownBox, voiceDropDownBox);
 
                 clonedCustomizationDrawers.gameObject.SetActive(true);
 
@@ -162,9 +165,9 @@ namespace HeadVoiceSelector.Core.UI
 
                 _availableCustomizations = availableCustomizations;
 
-                compositeDisposableClass.SubscribeEvent(_headSelector.OnValueChanged, selectHeadEvent);
+                compositeDisposableClass.SubscribeEvent(_headSelector.OnValueChanged, SelectHeadEvent);
 
-                compositeDisposableClass.SubscribeEvent(_voiceSelector.OnValueChanged, selectVoiceEvent);
+                compositeDisposableClass.SubscribeEvent(_voiceSelector.OnValueChanged, SelectVoiceEvent);
 
             }
             catch (Exception ex)
@@ -173,11 +176,11 @@ namespace HeadVoiceSelector.Core.UI
             }
         }
 
-        private static async Task getAvailableCustomizations(ISession session)
+        private static async Task GetAvailableCustomizations(ISession session)
         {
             try
             {
-                MongoID[] result = await session.GetAvailableAccountCustomization();
+                var result = await session.GetAvailableAccountCustomization();
                 _availableCustomizations = result;
             }
             catch (Exception ex)
@@ -186,19 +189,18 @@ namespace HeadVoiceSelector.Core.UI
             }
         }
 
-        private static void setupCustomizationDrawers(DropDownBox _headSelector, DropDownBox _voiceSelector)
+        private static void SetupCustomizationDrawers(DropDownBox _headSelector, DropDownBox _voiceSelector)
         {
             try
             {
-                GClass1597 instance = Singleton<GClass1597>.Instance;
+                var instance = Singleton<GClass1597>.Instance;
 
-                if (instance == null)
+                if (instance is null)
                 {
                     Console.WriteLine("GClass1597 instance is null.");
                     return;
                 }
-
-                _headTemplates = [];
+                
                 _voiceTemplates = [];
 
                 if (_availableCustomizations == null)
@@ -207,9 +209,10 @@ namespace HeadVoiceSelector.Core.UI
                     return;
                 }
 
-                foreach (MongoID mongoID in _availableCustomizations)
+                foreach (var mongoID in _availableCustomizations)
                 {
-                    GClass3316 anyCustomizationItem = instance.GetAnyCustomizationItem(mongoID);
+                    var anyCustomizationItem = instance.GetAnyCustomizationItem(mongoID);
+                    
                     if (anyCustomizationItem == null)
                     {
                         Console.WriteLine("anyCustomizationItem is null.");
@@ -240,7 +243,7 @@ namespace HeadVoiceSelector.Core.UI
                     {
                         if (gclass.BodyPart == EBodyModelPart.Head)
                         {
-                            _headTemplates.Add(new KeyValuePair<string, GClass3317>(mongoID, gclass));
+                            HeadTemplates.Add(mongoID, gclass);
         #if DEBUG
                             Console.WriteLine($"Added head customization template: {mongoID}");
         #endif
@@ -256,25 +259,25 @@ namespace HeadVoiceSelector.Core.UI
                 }
 
         #if DEBUG
-                Console.WriteLine($"Added {_headTemplates.Count} head customization templates.");
+                Console.WriteLine($"Added {HeadTemplates.Count} head customization templates.");
                 Console.WriteLine($"Added {_voiceTemplates.Count} voice customization templates.");
         #endif
 
                 _voices.Clear();
 
-                if (_headSelector == null)
+                if (_headSelector is null)
                 {
                     Console.WriteLine("Head dropdown is null.");
                     return;
                 }
-                setupHeadDropdownInfo(_headSelector);
+                SetupHeadDropdownInfo(_headSelector);
 
-                if (_voiceSelector == null)
+                if (_voiceSelector is null)
                 {
                     Console.WriteLine("Voice dropdown is null.");
                     return;
                 }
-                setupVoiceDropdownInfo(_voiceSelector);
+                SetupVoiceDropdownInfo(_voiceSelector);
 
             }
             catch (Exception ex)
@@ -283,26 +286,21 @@ namespace HeadVoiceSelector.Core.UI
             }
         }
 
-        private static void setupHeadDropdownInfo(DropDownBox _headSelector)
+        private static void SetupHeadDropdownInfo(DropDownBox headSelector)
         {
             try
             {
+                var id = Customization[EBodyModelPart.Head];
 
-                string text = PatchConstants.BackEndSession.Profile.Customization[EBodyModelPart.Head];
+                _selectedHeadIndex = HeadTemplates.GetIndexOfKey(id);
+                
+                headSelector.Show(HeadTemplates
+                    .Select(t => t.Key.LocalizedShortName())
+                    .Where(s => s.Length > 0));
 
-                int num = 0;
-                while (num < _headTemplates.Count && _headTemplates[num].Key != text)
-                {
-                    num++;
-                }
+                headSelector.UpdateValue(_selectedHeadIndex, false);
 
-                _selectedHeadIndex = num;
-
-                _headSelector.Show(initializeHeadDropdown);
-
-                _headSelector.UpdateValue(_selectedHeadIndex, false);
-
-                PatchConstants.BackEndSession.Profile.Customization[EBodyModelPart.Head] = _headTemplates[_selectedHeadIndex].Key;
+               Customization[EBodyModelPart.Head] = HeadTemplates.GetKvpFromIndex(_selectedHeadIndex).Key;
 
             }
             catch (Exception ex)
@@ -311,13 +309,12 @@ namespace HeadVoiceSelector.Core.UI
             }
         }
 
-        private static void setupVoiceDropdownInfo(DropDownBox _voiceSelector)
+        private static void SetupVoiceDropdownInfo(DropDownBox _voiceSelector)
         {
             try
             {
-                string currentVoice = PatchConstants.BackEndSession.Profile.Info.Voice;
-
-                int selectedIndex = _voiceTemplates.FindIndex(v => v.Value.Name == currentVoice);
+                var currentVoice = PatchConstants.BackEndSession.Profile.Info.Voice;
+                var selectedIndex = _voiceTemplates.FindIndex(v => v.Value.Name == currentVoice);
 
                 if (selectedIndex == -1)
                 {
@@ -325,7 +322,7 @@ namespace HeadVoiceSelector.Core.UI
                     return;
                 }
 
-                _voiceSelector.Show(initializeVoiceDropdown);
+                _voiceSelector.Show(InitializeVoiceDropdown);
 
                 _voiceSelector.UpdateValue(selectedIndex, false);
 
@@ -336,34 +333,13 @@ namespace HeadVoiceSelector.Core.UI
                 Console.WriteLine($"An error occurred during voice dropdown info setup: {ex.Message}");
             }
         }
-
-        private static IEnumerable<string> initializeHeadDropdown()
+        
+        private static IEnumerable<string> InitializeVoiceDropdown()
         {
-            return _headTemplates.Select(getLocalizedHead).ToArray();
+            return _voiceTemplates.Select(x => x.Value.NameLocalizationKey.Localized()).ToArray();
         }
-
-        private static IEnumerable<string> initializeVoiceDropdown()
-        {
-            return _voiceTemplates.Select(getLocalizedVoice).ToArray();
-        }
-
-        private static string getLocalizedHead(KeyValuePair<string, GClass3317> x)
-        {
-#if DEBUG
-            Console.WriteLine($"Localizing head: {x.Key}");
-#endif
-            return x.Value.NameLocalizationKey.Localized();
-        }
-
-        private static string getLocalizedVoice(KeyValuePair<string, GClass3321> x)
-        {
-#if DEBUG
-            Console.WriteLine($"Localizing voice: {x.Key}");
-#endif
-            return x.Value.NameLocalizationKey.Localized();
-        }
-
-        private static void selectHeadEvent(int selectedIndex)
+        
+        private static void SelectHeadEvent(int selectedIndex)
         {
             try
             {
@@ -379,12 +355,12 @@ namespace HeadVoiceSelector.Core.UI
                 }
 
                 _selectedHeadIndex = selectedIndex;
-                string key = _headTemplates[_selectedHeadIndex].Key;
-                PatchConstants.BackEndSession.Profile.Customization[EBodyModelPart.Head] = key;
+                var key = HeadTemplates.GetKvpFromIndex(_selectedHeadIndex).Key;
+                Customization[EBodyModelPart.Head] = key;
 #if DEBUG
                 Console.WriteLine($"Head customization updated to: {key}");
 #endif
-                showPlayerPreview().HandleExceptions();
+                ShowPlayerPreview().HandleExceptions();
 
 
 
@@ -399,22 +375,22 @@ namespace HeadVoiceSelector.Core.UI
             }
         }
 
-        private static async Task showPlayerPreview()
+        private static async Task ShowPlayerPreview()
         {
             try
             {
-                Transform leftSide = _overallScreen.transform.Find("LeftSide");
-                if (leftSide == null)
+                var leftSide = _overallScreen.transform.Find("LeftSide");
+                if (leftSide is null)
                 {
                     Console.WriteLine("Overall screen parent not found.");
                     return;
                 }
 
-                Transform characterPanel = leftSide.transform.Find("CharacterPanel");
-                PlayerModelView playerModelViewScript = characterPanel.GetComponentInChildren<PlayerModelView>();
+                var characterPanel = leftSide.transform.Find("CharacterPanel");
+                var playerModelViewScript = characterPanel.GetComponentInChildren<PlayerModelView>();
 
-                InventoryPlayerModelWithStatsWindow inventoryPlayerModelWithStatsWindow = leftSide.GetComponent<InventoryPlayerModelWithStatsWindow>();
-                if (inventoryPlayerModelWithStatsWindow == null)
+                var inventoryPlayerModelWithStatsWindow = leftSide.GetComponent<InventoryPlayerModelWithStatsWindow>();
+                if (inventoryPlayerModelWithStatsWindow is null)
                 {
                     Console.WriteLine("InventoryPlayerModelWithStatsWindow component not found.");
                     return;
@@ -422,7 +398,7 @@ namespace HeadVoiceSelector.Core.UI
 
                 await playerModelViewScript.Show(PatchConstants.BackEndSession.Profile, null, inventoryPlayerModelWithStatsWindow.method_5);
 
-                changeSelectedHead(false, playerModelViewScript);
+                ChangeSelectedHead(false, playerModelViewScript);
 
             }
             catch (Exception ex)
@@ -431,13 +407,13 @@ namespace HeadVoiceSelector.Core.UI
             }
         }
 
-        private static void changeSelectedHead(bool active, PlayerModelView playerModelView)
+        private static void ChangeSelectedHead(bool active, PlayerModelView playerModelView)
         {
             try
             {
 
                 slotViews = playerModelView.PlayerBody.SlotViews;
-                foreach (GameObject gameObject in _hiddenSlots.Where(getSlotType).Select(getSlotKey).Where(getModel))
+                foreach (var gameObject in _hiddenSlots.Where(GetSlotType).Select(GetSlotKey).Where(GetModel))
                 {
                     gameObject.SetActive(active);
                 }
@@ -448,27 +424,27 @@ namespace HeadVoiceSelector.Core.UI
             }
         }
 
-        private static bool getSlotType(EquipmentSlot slotType)
+        private static bool GetSlotType(EquipmentSlot slotType)
         {
             return slotViews.ContainsKey(slotType);
         }
 
-        private static GameObject getSlotKey(EquipmentSlot slotType)
+        private static GameObject GetSlotKey(EquipmentSlot slotType)
         {
             return slotViews.GetByKey(slotType).ParentedModel.Value;
         }
 
-        private static bool getModel(GameObject model)
+        private static bool GetModel(GameObject model)
         {
-            return model != null;
+            return model is not null;
         }
 
-        private static void selectVoiceEvent(int selectedIndex)
+        private static void SelectVoiceEvent(int selectedIndex)
         {
             try
             {
                 _selectedVoiceIndex = selectedIndex;
-                selectVoice(selectedIndex).HandleExceptions();
+                SelectVoice(selectedIndex).HandleExceptions();
             }
             catch (Exception ex)
             {
@@ -476,27 +452,29 @@ namespace HeadVoiceSelector.Core.UI
             }
         }
 
-        private static async Task selectVoice(int selectedIndex)
+        private static async Task SelectVoice(int selectedIndex)
         {
             try
             {
-                if (!_voices.TryGetValue(selectedIndex, out _))
+                if (!_voices.ContainsKey(selectedIndex))
                 {
-                    TagBank result = await Singleton<GClass868>.Instance.TakeVoice(_voiceTemplates[_selectedVoiceIndex].Value.Name);
+                    var result = await Singleton<GClass868>.Instance.TakeVoice(_voiceTemplates[_selectedVoiceIndex].Value.Name);
                     _voices.Add(selectedIndex, result);
-                    if (result == null)
+                    
+                    if (result is null)
                     {
                         Console.WriteLine($"Voice not available for index: {selectedIndex}");
                         return;
                     }
                 }
-                string key = _voiceTemplates[_selectedVoiceIndex].Value.Name;
+                
+                var key = _voiceTemplates[_selectedVoiceIndex].Value.Name;
 
                 PatchConstants.BackEndSession.Profile.Info.Voice = key;
 
 
-                int num = Random.Range(0, _voices[selectedIndex].Clips.Length);
-                TaggedClip taggedClip = _voices[selectedIndex].Clips[num];
+                var num = Random.Range(0, _voices[selectedIndex].Clips.Length);
+                var taggedClip = _voices[selectedIndex].Clips[num];
                 await Singleton<GUISounds>.Instance.ForcePlaySound(taggedClip.Clip);
 
 
@@ -512,14 +490,14 @@ namespace HeadVoiceSelector.Core.UI
         // Routes to handle server changes
         private static void WTTChangeHead(string id)
         {
-            if (id == null)
+            if (id is null)
             {
                 Console.WriteLine("Error: id is null.");
                 return;
             }
 
             var response = WebRequestUtils.Post<string>("/WTT/WTTChangeHead", id);
-            if (response != null)
+            if (response is not null)
             {
                 Console.WriteLine("HeadVoiceSelector: Change Head Route has been requested");
             }
@@ -542,8 +520,6 @@ namespace HeadVoiceSelector.Core.UI
                 Console.WriteLine("'HeadVoiceSelector': Change Voice Route has been requested");
             }
         }
-
-
     }
 }
 
